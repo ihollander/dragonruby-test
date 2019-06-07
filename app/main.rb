@@ -1,3 +1,19 @@
+class Wall
+  attr_accessor :x, :y, :w, :h
+
+  def initialize(args)
+    self.x = args.x
+    self.y = args.y
+    self.w = args.w || 40
+    self.y = args.h || 60
+  end
+
+  def move
+    self.x -= 8
+  end
+
+end
+
 class Runner
   attr_accessor :grid, :inputs, :game, :outputs
 
@@ -24,7 +40,7 @@ class Runner
     game.wall_countdown -= 1
 
     # move the walls left each frame
-    game.walls.each { |w| w.x -= 8 }
+    game.walls.each { |w| w.move }
     
     # remove the walls if they leave the screen
     game.walls.reject! { |w| w.x < -w.width }
@@ -54,7 +70,7 @@ class Runner
   end
 
   def render_background
-    outputs.solids << grid.rect # grid.rect = [0,0,gameWidth,gameHeight]
+    outputs.solids << grid.rect # grid.rect == [grid.left, grid.top, grid.bottom, grid.right]
   end
 
   def render_floor
