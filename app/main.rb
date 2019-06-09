@@ -4,7 +4,7 @@ class Runner
   attr_accessor :game, :grid, :outputs, :inputs
 
   def tick
-    defaults
+    set_defaults
     process_inputs
     update_state unless game_over?
     render
@@ -33,6 +33,10 @@ class Runner
     if inputs.keyboard.key_down.space && !game.state.player.jumping
       game.state.player.jumping = true
       game.state.player.dy = 15
+    end
+    if inputs.keyboard.key_down.r
+      game.state.obstacles = []
+      game.state.obstacle_countdown = 100
     end
   end
 
@@ -64,7 +68,7 @@ class Runner
     # generate a new obstacle each 100 ticks
     if game.state.obstacle_countdown == 0
       # reset the countdown
-      new_countdown = rand(50) + 100
+      new_countdown = rand(200) + 40
       game.state.obstacle_countdown = new_countdown
       # create a new game entity for each obstacle
       obstacle = game.new_entity(:obstacle, {

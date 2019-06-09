@@ -120,8 +120,8 @@ Now we'll add some obstacles to our game state. We'll have some default values t
 
     # generate a new obstacle each 100 ticks
     if game.state.obstacle_countdown == 0
-      # reset the countdown
-      new_countdown = rand(50) + 100
+      # reset the countdown randomly
+      new_countdown = rand(200) + 40
       game.state.obstacle_countdown = new_countdown
       # create a new game entity for each obstacle
       obstacle = game.new_entity(:obstacle, {
@@ -261,6 +261,18 @@ def tick
   process_inputs
   update_state unless game_over?
   render
+end
+```
+
+We can also add a reset feature by resetting the objects if the player presses the R key:
+
+```ruby
+def process_inputs
+  ...
+  if inputs.keyboard.key_down.r
+    game.state.obstacles = []
+    game.state.obstacle_countdown = 100
+  end
 end
 ```
 
