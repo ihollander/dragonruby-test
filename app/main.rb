@@ -1,11 +1,19 @@
 $dragon.require('app/game.rb')
 
 class Runner
-  attr_accessor :game, :grid, :outputs
+  attr_accessor :game, :grid, :outputs, :inputs
 
   def tick
+    process_inputs
     update_state
     render
+  end
+
+  def process_inputs
+    if inputs.keyboard.key_down.space && !game.state.player.jumping
+      game.state.player.jumping = true
+      game.state.player.dy = 15
+    end
   end
 
   def update_state
@@ -13,8 +21,28 @@ class Runner
     # obstacles
     game.state.obstacles ||= []
     game.state.obstacle_countdown ||= 100
-    
+
+    # player
+    game.state.player.x ||= grid.left + 60
+    game.state.player.y ||= grid.bottom + 60
+    game.state.player.dy ||= 0 # this will be used to calculate player movement on the y axis
+    game.state.player.jumping ||= false
+
     ### calculate new state on each tick
+    # handle jumps
+    if game.state.player.jumping
+      # update y coordinate
+      game.state.player.y += game.state.player.dy
+      # update the dy value
+      game.state.player.dy -= 0.9 # gravity!
+      # hit the floor?
+      if game.state.player.y <= grid.bottom + 60
+        game.state.player.dy = 0
+        game.state.player.jumping = false
+        game.state.player.y = 60
+      end
+    end
+    
     # decrement countdown
     game.state.obstacle_countdown -= 1
 
@@ -54,6 +82,9 @@ class Runner
     game.state.obstacles.each do |obstacle| 
       outputs.solids << [obstacle.x, obstacle.y, obstacle.width, obstacle.height, 255, 0, 0, 255]
     end
+
+    # draw the player
+    outputs.solids << [game.state.player.x, game.state.player.y, 60, 60, 0, 0, 255, 255]
   end
 end
 
@@ -66,19 +97,8 @@ def tick args
   $runner.game    = args.game
   $runner.grid    = args.grid
   $runner.outputs = args.outputs
+  $runner.inputs = args.inputs
 
   # invoke tick on the game
   $runner.tick
 end
-
-# def tick args
-
-#   # pass info from game tick to runner instance
-#   $runner.grid    = args.grid
-#   $runner.inputs  = args.inputs
-#   $runner.game    = args.game
-#   $runner.outputs = args.outputs
-
-#   # invoke tick on the runner
-#   $runner.tick
-# end

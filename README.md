@@ -149,6 +149,88 @@ def render
   end
 ```
 
+## 02. Player
+Now we can create player! Add a position to our game state to give our player starting coordinates:
+
+```ruby
+  def update_state
+    ### set default values
+    ...
+    # player
+    game.state.player.x ||= grid.left + 60
+    game.state.player.y ||= grid.bottom + 60
+    game.state.player.dy ||= 0 # this will be used to calculate player movement on the y axis
+    game.state.player.jumping ||= false # if we're jumping
+    ...
+  end
+```
+
+And update the render method to draw the player:
+
+```ruby
+def render
+  ... 
+  # draw the player
+  outputs.solids << [game.state.player.x, game.state.player.y, 60, 60, 0, 0, 255, 255]
+end
+```
+
+In order to make the player jump, we'll need to get access to the inputs argument from the main DragonRuby `tick` method. Update our `attr_accessors` to include inputs and pass them in from the `tick` method:
+
+```ruby
+class Runner
+  attr_accessor :game, :grid, :outputs, :inputs # added inputs
+
+  ...
+end
+
+def tick args
+  $runner.game    = args.game
+  $runner.grid    = args.grid
+  $runner.outputs = args.outputs
+  $runner.inputs  = args.inputs # pass input from tick
+
+  $runner.tick
+end
+```
+
+Each tick, we'll process the input values to check for any changes, and update our game state accordingly. Add a new method `process_inputs` to the `Runner` class:
+
+```ruby
+def tick
+  process_inputs
+  update_state
+  render
+end
+
+def process_inputs
+  if inputs.keyboard.key_down.space && !game.state.player.jumping
+    game.state.player.jumping = true
+    game.state.player.dy = 15
+  end
+end
+```
+
+Now we'll need to update the player's position if they're jumping and update the `dy` value to simulate jumping physics:
+
+```ruby
+def update_state
+  ...
+  # handle jumps
+  if game.state.player.jumping
+    # update y coordinate
+    game.state.player.y += game.state.player.dy
+    # update the dy value
+    game.state.player.dy -= 0.9 # gravity!
+    # hit the floor?
+    if game.state.player.y <= grid.bottom + 60
+      game.state.player.dy = 0
+      game.state.player.jumping = false
+      game.state.player.y = 60
+    end
+  end
+  ...
+```
 
 # Extras
 ## Requiring Files
