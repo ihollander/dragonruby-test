@@ -111,24 +111,26 @@ Now we'll add some obstacles to our game state. We'll set a counter to check whe
     game.state.obstacle_countdown -= 1
 
     # move the obstacles left 8 pixels each frame
-    game.state.obstacles.each { |w| w.x -= 8 }
+    game.state.obstacles.each { |w| w.rect[0] -= 8 }
     
     # remove the obstacles if they leave the screen
-    game.state.obstacles.reject! { |w| w.x < -w.width }
+    game.state.obstacles.reject! { |w| w.rect[0] < -w.rect[2] }
 
     # generate a new obstacle each 100 ticks
     if game.state.obstacle_countdown == 0
       # reset the countdown
       new_countdown = rand(50) + 100
       game.state.obstacle_countdown = new_countdown
-      # create a new game object
-      obstacle = game.new_entity(:obstacle) do |o|
-        # set position for new obstacle
-        o.x = grid.right
-        o.y = grid.bottom + 60
-        o.width = 40
-        o.height = 80
-      end
+      # create a new game entity for each obstacle
+      obstacle = game.new_entity(:obstacle, {
+        rect: [
+          grid.right, # x
+          grid.bottom + 60, # y
+          40, # w
+          80, # h
+          255, 0, 0, 255 # rbga
+        ]
+      }) 
       
       # add it to our game state
       game.state.obstacles << obstacle
@@ -144,7 +146,7 @@ def render
     ...
     # draw the obstacles
     game.state.obstacles.each do |obstacle| 
-      outputs.solids << [obstacle.x, obstacle.y, obstacle.width, obstacle.height, 255, 0, 0, 255]
+      outputs.solids << obstacle.rect
     end
   end
 ```
@@ -157,10 +159,17 @@ Now we can create player! Add a position to our game state to give our player st
     ### set default values
     ...
     # player
-    game.state.player.x ||= grid.left + 60
-    game.state.player.y ||= grid.bottom + 60
-    game.state.player.dy ||= 0 # this will be used to calculate player movement on the y axis
-    game.state.player.jumping ||= false # if we're jumping
+    game.state.player ||= game.new_entity(:player, {
+      rect: [
+        grid.left + 60, # x
+        grid.bottom + 60, # y
+        60, # w
+        60, # h
+        0, 0, 255, 255 # rbga
+      ],
+      dy: 0, # this will be used to calculate player movement on the y axis
+      jumping: false
+    })
     ...
   end
 ```
@@ -171,7 +180,7 @@ And update the render method to draw the player:
 def render
   ... 
   # draw the player
-  outputs.solids << [game.state.player.x, game.state.player.y, 60, 60, 0, 0, 255, 255]
+  outputs.solids << game.state.player.rect
 end
 ```
 
@@ -219,18 +228,43 @@ def update_state
   # handle jumps
   if game.state.player.jumping
     # update y coordinate
-    game.state.player.y += game.state.player.dy
+    game.state.player.rect[1] += game.state.player.dy
     # update the dy value
     game.state.player.dy -= 0.9 # gravity!
     # hit the floor?
-    if game.state.player.y <= grid.bottom + 60
+    if game.state.player.rect[1] <= grid.bottom + 60
       game.state.player.dy = 0
       game.state.player.jumping = false
-      game.state.player.y = 60
+      game.state.player.rect[1] = grid.bottom + 60
     end
   end
   ...
 ```
+
+## 03. Collisions
+To check if the player collides with one of the walls, we can use DragonRuby's `intersects_rect?` method on our game entities. Let's write a method to check for any collisions and return a boolean:
+
+```ruby
+def game_over?
+  game.state.obstacles.any? do |o|
+    o.rect.intersects_rect?(game.state.player.rect)
+  end
+end
+```
+
+For now, we'll use our `game_over?` method to stop our game state from being updated (so the game will effectively pause):
+
+```ruby
+def tick
+  process_inputs
+  update_state unless game_over?
+  render
+end
+```
+
+With this code added, we've effectively completed all of the logic for this platformer!
+
+TODO: restart the game; add a score; add sounds/sprites/etc; refactor
 
 # Extras
 ## Requiring Files
