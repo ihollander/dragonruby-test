@@ -1,101 +1,84 @@
-class Wall
-  attr_accessor :x, :y, :w, :h
-
-  def initialize(args)
-    self.x = args.x
-    self.y = args.y
-    self.w = args.w || 40
-    self.y = args.h || 60
-  end
-
-  def move
-    self.x -= 8
-  end
-
-end
+$dragon.require('app/game.rb')
 
 class Runner
-  attr_accessor :grid, :inputs, :game, :outputs
+  attr_accessor :game, :grid, :outputs
 
-  # this will run on each tick
   def tick
-    defaults
-    calc
+    update_state
     render
   end
 
-  # set default values on each tick
-  def defaults
-    game.walls ||= []
-    game.wall_countdown ||= 100
-  end
-
-  # generate game objects
-  def calc
-    calc_walls
-  end
-
-  def calc_walls
-    # decrement countdown
-    game.wall_countdown -= 1
-
-    # move the walls left each frame
-    game.walls.each { |w| w.move }
+  def update_state
+    ### set default values
+    # obstacles
+    game.state.obstacles ||= []
+    game.state.obstacle_countdown ||= 100
     
-    # remove the walls if they leave the screen
-    game.walls.reject! { |w| w.x < -w.width }
+    ### calculate new state on each tick
+    # decrement countdown
+    game.state.obstacle_countdown -= 1
 
-    # generate a new wall each 100 frames
-    if game.wall_countdown == 0
+    # move the obstacles left 8 pixels each frame
+    game.state.obstacles.each { |w| w.x -= 8 }
+    
+    # remove the obstacles if they leave the screen
+    game.state.obstacles.reject! { |w| w.x < -w.width }
+
+    # generate a new obstacle each 100 ticks
+    if game.state.obstacle_countdown == 0
       # reset the countdown
-      game.wall_countdown = 100
+      new_countdown = rand(50) + 100
+      game.state.obstacle_countdown = new_countdown
       # create a new game object
-      wall = game.new_entity(:wall) do |w|
-        w.x = grid.right
-        w.y = grid.bottom + 60
-        w.width = 40
-        w.height = 80
+      obstacle = game.new_entity(:obstacle) do |o|
+        # set position for new obstacle
+        o.x = grid.right
+        o.y = grid.bottom + 60
+        o.width = 40
+        o.height = 80
       end
       
-      game.walls << wall
+      # add it to our game state
+      game.state.obstacles << obstacle
     end
 
   end
 
-  # draw things
   def render
-    render_background
-    render_floor
-    render_walls
-  end
-
-  def render_background
+    # draw a black background
     outputs.solids << grid.rect # grid.rect == [grid.left, grid.top, grid.bottom, grid.right]
-  end
-
-  def render_floor
+    # draw the floor
     outputs.solids << [grid.left, grid.bottom, grid.right, 60, 255, 0, 0, 255]
-  end
 
-  def render_walls
-    game.walls.each do |wall| 
-      outputs.solids << [wall.x, wall.y, wall.width, wall.height, 255, 0, 0, 255]
+    # draw the obstacles
+    game.state.obstacles.each do |obstacle| 
+      outputs.solids << [obstacle.x, obstacle.y, obstacle.width, obstacle.height, 255, 0, 0, 255]
     end
   end
-
 end
 
 # create our game instance
 $runner = Runner.new
 
+# main DragonRuby game loop
 def tick args
-
-  # pass info from game tick to runner instance
-  $runner.grid    = args.grid
-  $runner.inputs  = args.inputs
+  # pass info from DragonRuby tick to game instance
   $runner.game    = args.game
+  $runner.grid    = args.grid
   $runner.outputs = args.outputs
 
-  # invoke tick on the runner
+  # invoke tick on the game
   $runner.tick
 end
+
+# def tick args
+
+#   # pass info from game tick to runner instance
+#   $runner.grid    = args.grid
+#   $runner.inputs  = args.inputs
+#   $runner.game    = args.game
+#   $runner.outputs = args.outputs
+
+#   # invoke tick on the runner
+#   $runner.tick
+# end
