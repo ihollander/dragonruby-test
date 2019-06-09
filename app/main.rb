@@ -4,20 +4,13 @@ class Runner
   attr_accessor :game, :grid, :outputs, :inputs
 
   def tick
+    defaults
     process_inputs
     update_state unless game_over?
     render
   end
 
-  def process_inputs
-    if inputs.keyboard.key_down.space && !game.state.player.jumping
-      game.state.player.jumping = true
-      game.state.player.dy = 15
-    end
-  end
-
-  def update_state
-    ### set default values
+  def set_defaults
     # obstacles
     game.state.obstacles ||= []
     game.state.obstacle_countdown ||= 100
@@ -34,7 +27,16 @@ class Runner
       dy: 0, # this will be used to calculate player movement on the y axis
       jumping: false
     })
+  end
 
+  def process_inputs
+    if inputs.keyboard.key_down.space && !game.state.player.jumping
+      game.state.player.jumping = true
+      game.state.player.dy = 15
+    end
+  end
+
+  def update_state
     ### calculate new state on each tick
     # handle jumps
     if game.state.player.jumping

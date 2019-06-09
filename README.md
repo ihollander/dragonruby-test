@@ -93,20 +93,22 @@ class Runner
 Your game should now look something like this:
 ![01](./assets/01.png?raw=true "Floor")
 
-Now we'll add some obstacles to our game state. We'll set a counter to check when we need to add a new obstacle, and an array to keep track of all the obstacles on the screen. Each tick of the game, we'll recalculate the state for these obstacles:
+Now we'll add some obstacles to our game state. We'll have some default values to set our initial game state: a counter to check when we need to add a new obstacle, and an array to keep track of all the obstacles on the screen. Each tick of the game, we'll recalculate the state for these obstacles:
 
 ```ruby
   def tick
+    set_defaults
     update_state # each tick, update the game state
     render
   end
 
-  def update_state
-    ### set default values
+  def set_defaults
     game.state.obstacles ||= []
     game.state.obstacle_countdown ||= 100
-    
-    ### calculate new state on each tick
+  end
+
+  ### calculate new state on each tick
+  def update_state
     # decrement countdown
     game.state.obstacle_countdown -= 1
 
@@ -155,8 +157,7 @@ def render
 Now we can create player! Add a position to our game state to give our player starting coordinates:
 
 ```ruby
-  def update_state
-    ### set default values
+  def set_defaults
     ...
     # player
     game.state.player ||= game.new_entity(:player, {
@@ -170,7 +171,6 @@ Now we can create player! Add a position to our game state to give our player st
       dy: 0, # this will be used to calculate player movement on the y axis
       jumping: false
     })
-    ...
   end
 ```
 
@@ -207,6 +207,7 @@ Each tick, we'll process the input values to check for any changes, and update o
 
 ```ruby
 def tick
+  set_defaults
   process_inputs
   update_state
   render
@@ -256,6 +257,7 @@ For now, we'll use our `game_over?` method to stop our game state from being upd
 
 ```ruby
 def tick
+  set_defaults
   process_inputs
   update_state unless game_over?
   render
