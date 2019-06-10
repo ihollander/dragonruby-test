@@ -153,6 +153,9 @@ def render
   end
 ```
 
+Now our game has some obstacles:
+![02](./assets/02.png?raw=true "Obstacles")
+
 ## 02. Player
 Now we can create player! Add a position to our game state to give our player starting coordinates:
 
@@ -183,6 +186,9 @@ def render
   outputs.solids << game.state.player.rect
 end
 ```
+
+With our player added, the game should look like:
+![02](./assets/03.png?raw=true "Player")
 
 In order to make the player jump, we'll need to get access to the inputs argument from the main DragonRuby `tick` method. Update our `attr_accessors` to include inputs and pass them in from the `tick` method:
 
@@ -261,6 +267,17 @@ def tick
   process_inputs
   update_state unless game_over?
   render
+end
+```
+
+In our render method, add a label to display when the game ends:
+
+```ruby
+def render
+  ...
+  if game_over?
+    outputs.labels << [grid.w_half, grid.h_half, "Game Over", 2, 1, 255, 255, 255, 255]
+  end
 end
 ```
 

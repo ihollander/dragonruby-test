@@ -5,9 +5,9 @@ class Runner
 
   def tick
     set_defaults
+    render
     process_inputs
     update_state unless game_over?
-    render
   end
 
   def set_defaults
@@ -105,6 +105,10 @@ class Runner
 
     # draw the player
     outputs.solids << game.state.player.rect
+
+    if game_over?
+      outputs.labels << [grid.w_half, grid.h_half, "Game Over", 2, 1, 255, 255, 255, 255]
+    end
   end
 end
 
@@ -113,11 +117,12 @@ $runner = Runner.new
 
 # main DragonRuby game loop
 def tick args
+  print self.public_methods.sort.to_s + "\r" if args.game.tick_count % 5000 == 1
   # pass info from DragonRuby tick to game instance
   $runner.game    = args.game
   $runner.grid    = args.grid
   $runner.outputs = args.outputs
-  $runner.inputs = args.inputs
+  $runner.inputs  = args.inputs
 
   # invoke tick on the game
   $runner.tick

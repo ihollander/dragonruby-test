@@ -76,7 +76,3 @@ Renders an image sprite (png only?)
 
 ### `args.outputs.clear`
 Clear all the outputs (empties the outputs arrays).
-
-
-
-:all_borders, :all_labels, :all_lines, :all_primitives, :all_reserved, :all_solids, :all_sounds, :all_sprites, :borders, :borders=, :clear, :clear_non_static, :height, :height=, :labels, :labels=, :lines, :lines=, :original_puts, :primitives, :primitives=, :reserved, :reserved=, :serialize, :solids, :solids=, :sounds, :sounds=, :sprites, :sprites=, :static_borders, :static_borders=, :static_labels, :static_labels=, :static_lines, :static_lines=, :static_primitives, :static_primitives=, :static_reserved, :static_reserved=, :static_solids, :static_solids=, :static_sprites, :static_sprites=, :target, :target=, :width, :width=
